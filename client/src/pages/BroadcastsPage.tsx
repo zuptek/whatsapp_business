@@ -25,7 +25,7 @@ export const BroadcastsPage = ({ token }: { token: string | null }) => {
     useEffect(() => {
         if (!tenantId) return;
         // Fetch Templates
-        axios.get(`http://localhost:3000/api/templates?tenantId=${tenantId}`)
+        axios.get(`http://localhost:3001/api/templates?tenantId=${tenantId}`)
             .then(res => setTemplates(res.data.data));
 
         // Fetch Campaigns
@@ -33,7 +33,7 @@ export const BroadcastsPage = ({ token }: { token: string | null }) => {
     }, [tenantId]);
 
     const fetchCampaigns = () => {
-        axios.get(`http://localhost:3000/api/campaigns?tenantId=${tenantId}`)
+        axios.get(`http://localhost:3001/api/campaigns?tenantId=${tenantId}`)
             .then(res => setCampaigns(res.data));
     };
 
@@ -47,7 +47,7 @@ export const BroadcastsPage = ({ token }: { token: string | null }) => {
         const contactList = phones.split(',').map(p => ({ phone: p.trim(), name: 'Valued Customer' })).filter(c => c.phone);
 
         try {
-            await axios.post('http://localhost:3000/api/campaigns', {
+            await axios.post('http://localhost:3001/api/campaigns', {
                 tenantId,
                 name: campaignName,
                 templateId: template.id,

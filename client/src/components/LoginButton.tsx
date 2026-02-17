@@ -60,7 +60,7 @@ export const LoginButton = ({ appId, onSuccess, onError }: LoginButtonProps) => 
                 // MVP: Send whatever we get (code or token) to backend
                 const authCode = response.authResponse.code || response.authResponse.accessToken;
 
-                axios.post('http://localhost:3000/api/auth/meta-callback', { code: authCode })
+                axios.post('http://localhost:3001/api/auth/meta-callback', { code: authCode })
                     .then((res) => {
                         onSuccess(res.data.token);
                     })

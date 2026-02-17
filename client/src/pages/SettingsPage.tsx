@@ -50,7 +50,7 @@ export function SettingsPage({ token }: SettingsPageProps) {
 
     const loadSettings = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/api/settings', {
+            const response = await axios.get('http://localhost:3001/api/settings', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTenant(response.data.tenant);
@@ -80,7 +80,7 @@ export function SettingsPage({ token }: SettingsPageProps) {
         if (!selectedPhoneId) return;
         setSaving(true);
         try {
-            await axios.put(`http://localhost:3000/api/settings/phone/${selectedPhoneId}`, config, {
+            await axios.put(`http://localhost:3001/api/settings/phone/${selectedPhoneId}`, config, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

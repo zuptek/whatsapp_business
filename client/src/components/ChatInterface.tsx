@@ -39,7 +39,7 @@ export const ChatInterface = ({ token }: ChatInterfaceProps) => {
 
     // Initialize Socket.io
     useEffect(() => {
-        socket.current = io('http://localhost:3000');
+        socket.current = io('http://localhost:3001');
 
         socket.current.on('connect', () => {
             console.log('Connected to Socket.io');

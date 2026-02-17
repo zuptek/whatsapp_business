@@ -15,7 +15,7 @@ export const MetaCallback = ({ token }: { token: string | null }) => {
             return;
         }
 
-        axios.post('http://localhost:3000/api/meta/callback', { code }, {
+        axios.post('http://localhost:3001/api/meta/callback', { code }, {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(() => {
