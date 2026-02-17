@@ -1,0 +1,405 @@
+# AISensy-Style Chat Enhancement - Implementation Plan
+
+## Overview
+
+Transform your existing WhatsApp Business CRM into a feature-rich platform similar to AISensy, with enhanced conversation management, template messaging, interactive features, and a premium UI/UX.
+
+## Current State Analysis
+
+Your existing application has:
+- ✅ Three-pane layout (Conversations, Chat, Contact Details)
+- ✅ Real-time messaging with WebSocket
+- ✅ Basic conversation list with search
+- ✅ Message history display
+- ✅ Notes and tags functionality
+- ✅ Multi-tenant architecture
+- ✅ WhatsApp Business API integration
+
+## Key AISensy Features to Implement
+
+Based on the exploration, AISensy has these standout features:
+
+1. **Conversation Tabs** - Active, Requesting, Intervened filters
+2. **Template Messaging** - Pre-approved message templates with variables
+3. **Interactive Messages** - Quick reply buttons, CTAs, lists
+4. **Flow Builder** - Visual chatbot automation
+5. **Enhanced Contact Profiles** - Custom attributes, campaign history
+6. **Media Management** - Link generation, gallery view
+7. **Agent Assignment** - Multi-agent support with intervention
+8. **Message Status** - Detailed delivery tracking
+
+---
+
+## Proposed Changes
+
+### Phase 1: Conversation Management Enhancement
+
+#### [MODIFY] [ChatInterface.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/ChatInterface.tsx)
+
+**Changes:**
+- Add conversation status tabs (Active, Requesting, Intervened, All)
+- Implement conversation status filtering
+- Add agent assignment dropdown
+- Create empty state component with illustrations
+- Add conversation archiving functionality
+- Implement conversation priority/pinning
+
+**New State Variables:**
+```typescript
+const [activeTab, setActiveTab] = useState<'active' | 'requesting' | 'intervened' | 'all'>('active');
+const [conversationStatus, setConversationStatus] = useState<Map<string, string>>(new Map());
+```
+
+---
+
+#### [NEW] [ConversationTabs.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/ConversationTabs.tsx)
+
+**Purpose:** Reusable tab component for conversation filtering
+
+**Features:**
+- Tab switching with smooth animations
+- Badge counts for each tab
+- Keyboard navigation support
+
+---
+
+#### [NEW] [EmptyState.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/EmptyState.tsx)
+
+**Purpose:** Display helpful empty states when no conversations match filters
+
+**Features:**
+- Contextual illustrations
+- Helpful action buttons
+- Quick links to documentation
+
+---
+
+### Phase 2: Template Messaging System
+
+#### [NEW] [TemplateManager.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/pages/TemplateManager.tsx)
+
+**Purpose:** Full template management interface
+
+**Features:**
+- Template listing with search and filters
+- Template creation wizard
+- Template preview
+- Category management (Marketing, Utility, Authentication)
+- Variable/placeholder support
+- Quick reply button configuration
+- CTA button configuration
+- Template approval status tracking
+
+---
+
+#### [NEW] [TemplateSendModal.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/TemplateSendModal.tsx)
+
+**Purpose:** Modal for selecting and sending templates in chat
+
+**Features:**
+- Template search and filtering
+- Variable value input
+- Template preview with filled variables
+- Send confirmation
+
+---
+
+#### [MODIFY] [ChatInterface.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/ChatInterface.tsx)
+
+**Changes:**
+- Add "Send Template" button in message input area
+- Integrate template send modal
+- Display template messages with special styling
+
+---
+
+### Phase 3: Interactive Messages
+
+#### [NEW] [InteractiveMessageBuilder.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/InteractiveMessageBuilder.tsx)
+
+**Purpose:** Build interactive messages with buttons, lists, and CTAs
+
+**Features:**
+- Quick reply button builder (up to 3 buttons)
+- CTA button builder (URL, Phone)
+- List message builder (up to 10 items)
+- Product message builder
+- Real-time preview
+
+---
+
+#### [MODIFY] [MessageBubble.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/MessageBubble.tsx)
+
+**Changes:**
+- Add rendering for interactive buttons
+- Add rendering for list messages
+- Add rendering for product messages
+- Handle button click interactions
+- Display button response indicators
+
+---
+
+### Phase 4: Enhanced Media Handling
+
+#### [NEW] [MediaUploader.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/MediaUploader.tsx)
+
+**Purpose:** Advanced media upload with preview and management
+
+**Features:**
+- Drag-and-drop upload
+- Image/video preview before sending
+- Document upload with file type validation
+- Compression options for images
+- Caption input
+- Media link generation
+- Upload progress indicator
+
+---
+
+#### [NEW] [MediaGallery.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/MediaGallery.tsx)
+
+**Purpose:** View all media shared in a conversation
+
+**Features:**
+- Grid layout of images/videos
+- Lightbox view
+- Download functionality
+- Filter by media type
+- Date grouping
+
+---
+
+### Phase 5: Flow Builder (Advanced)
+
+> [!IMPORTANT]
+> This is an advanced feature that requires significant development effort. Consider implementing in a later phase.
+
+#### [NEW] [FlowBuilder.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/pages/FlowBuilder.tsx)
+
+**Purpose:** Visual drag-and-drop chatbot flow builder
+
+**Features:**
+- Node-based flow editor (using React Flow library)
+- Content nodes (Text, Media, Interactive)
+- Logic nodes (Conditions, Delays, Variables)
+- Integration nodes (API calls, Database queries)
+- Flow testing and preview
+- Flow analytics
+
+---
+
+### Phase 6: Backend Enhancements
+
+#### [NEW] [schema.ts additions](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/server/src/db/schema.ts)
+
+**New Tables:**
+
+```typescript
+// Templates table
+export const templates = pgTable('templates', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  name: text('name').notNull(),
+  category: text('category').notNull(), // 'MARKETING', 'UTILITY', 'AUTHENTICATION'
+  language: text('language').default('en'),
+  status: text('status').default('PENDING'), // 'PENDING', 'APPROVED', 'REJECTED'
+  headerType: text('header_type'), // 'TEXT', 'IMAGE', 'VIDEO', 'DOCUMENT'
+  headerContent: text('header_content'),
+  bodyText: text('body_text').notNull(),
+  footerText: text('footer_text'),
+  buttons: jsonb('buttons'), // Quick reply or CTA buttons
+  variables: jsonb('variables'), // List of variable names
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Flows table
+export const flows = pgTable('flows', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  name: text('name').notNull(),
+  description: text('description'),
+  trigger: text('trigger'), // 'KEYWORD', 'WELCOME', 'AWAY'
+  triggerValue: text('trigger_value'),
+  flowData: jsonb('flow_data').notNull(), // Node and edge data
+  isActive: boolean('is_active').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Conversation status tracking
+ALTER TABLE conversations ADD COLUMN status text DEFAULT 'active';
+ALTER TABLE conversations ADD COLUMN assignedTo uuid REFERENCES users(id);
+ALTER TABLE conversations ADD COLUMN priority integer DEFAULT 0;
+ALTER TABLE conversations ADD COLUMN archived boolean DEFAULT false;
+```
+
+---
+
+#### [NEW] [templates.ts](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/server/src/routes/templates.ts)
+
+**Endpoints:**
+- `GET /api/templates` - List all templates for tenant
+- `POST /api/templates` - Create new template
+- `PUT /api/templates/:id` - Update template
+- `DELETE /api/templates/:id` - Delete template
+- `POST /api/templates/:id/submit` - Submit template for WhatsApp approval
+- `GET /api/templates/:id/status` - Check approval status
+
+---
+
+#### [MODIFY] [messages.ts](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/server/src/routes/messages.ts)
+
+**Changes:**
+- Add template message sending support
+- Add interactive message handling
+- Add media upload endpoint
+- Add message status webhook handling
+- Implement delivery receipt tracking
+
+---
+
+#### [NEW] [flows.ts](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/server/src/routes/flows.ts)
+
+**Endpoints:**
+- `GET /api/flows` - List all flows
+- `POST /api/flows` - Create new flow
+- `PUT /api/flows/:id` - Update flow
+- `DELETE /api/flows/:id` - Delete flow
+- `POST /api/flows/:id/activate` - Activate flow
+- `POST /api/flows/:id/test` - Test flow with sample data
+
+---
+
+#### [MODIFY] [webhooks.ts](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/server/src/routes/webhooks.ts)
+
+**Changes:**
+- Handle interactive message responses (button clicks)
+- Process message status updates (delivered, read)
+- Trigger flow automation based on keywords
+- Handle template message responses
+
+---
+
+### Phase 7: UI/UX Polish
+
+#### [MODIFY] [Layout.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/Layout.tsx)
+
+**Changes:**
+- Add navigation items for Templates and Flows
+- Add user profile dropdown with settings
+- Add notification center
+- Implement dark/light theme toggle
+
+---
+
+#### [NEW] [NotificationCenter.tsx](file:///home/chandan/Documents/whatsapp_business_api/whatsapp_business/client/src/components/NotificationCenter.tsx)
+
+**Purpose:** Display system notifications and alerts
+
+**Features:**
+- New message notifications
+- Template approval notifications
+- System alerts
+- Mark as read functionality
+- Notification preferences
+
+---
+
+## Verification Plan
+
+### Automated Tests
+
+```bash
+# Backend tests
+cd server
+npm run test
+
+# Frontend tests
+cd client
+npm run test
+
+# E2E tests
+npm run test:e2e
+```
+
+### Manual Verification
+
+1. **Conversation Management**
+   - [ ] Verify conversation tabs filter correctly
+   - [ ] Test conversation status changes
+   - [ ] Verify agent assignment works
+   - [ ] Test conversation archiving
+
+2. **Template Messaging**
+   - [ ] Create a new template with variables
+   - [ ] Send template message from chat
+   - [ ] Verify template variables are replaced
+   - [ ] Test quick reply buttons
+   - [ ] Test CTA buttons
+
+3. **Interactive Messages**
+   - [ ] Send interactive button message
+   - [ ] Verify button clicks are captured
+   - [ ] Test list messages
+   - [ ] Verify interactive responses are stored
+
+4. **Media Handling**
+   - [ ] Upload image with caption
+   - [ ] Upload video
+   - [ ] Upload document
+   - [ ] View media gallery
+   - [ ] Download media
+
+5. **Real-time Updates**
+   - [ ] Verify new messages appear instantly
+   - [ ] Test typing indicators
+   - [ ] Verify read receipts update
+   - [ ] Test multi-device sync
+
+6. **Flow Automation** (if implemented)
+   - [ ] Create simple welcome flow
+   - [ ] Test keyword trigger
+   - [ ] Verify flow execution
+   - [ ] Test flow branching logic
+
+### Browser Testing
+
+- [ ] Chrome (latest)
+- [ ] Firefox (latest)
+- [ ] Safari (latest)
+- [ ] Mobile responsive design
+
+---
+
+## Implementation Timeline
+
+**Phase 1-2:** 2-3 days (Conversation management + Templates)  
+**Phase 3-4:** 2-3 days (Interactive messages + Media)  
+**Phase 5:** 3-4 days (Flow builder - optional)  
+**Phase 6:** 2-3 days (Backend enhancements)  
+**Phase 7:** 1-2 days (UI polish)
+
+**Total Estimated Time:** 10-15 days (excluding Flow Builder)
+
+---
+
+## Next Steps
+
+1. Review this implementation plan
+2. Prioritize which phases to implement first
+3. Set up development environment
+4. Begin with Phase 1 (Conversation Management)
+5. Iterate and test each phase before moving to the next
+
+---
+
+## Screenshots Reference
+
+Here are the AISensy interface screenshots for reference:
+
+![AISensy Main Layout](/home/chandan/.gemini/antigravity/brain/01094051-4a2c-4f09-8ba2-c699afe64e6b/aisensy_main_layout_1771174946114.png)
+
+![AISensy Contact Profile](/home/chandan/.gemini/antigravity/brain/01094051-4a2c-4f09-8ba2-c699afe64e6b/aisensy_chat_profile_sidebar_1771175024617.png)
+
+![AISensy Templates](/home/chandan/.gemini/antigravity/brain/01094051-4a2c-4f09-8ba2-c699afe64e6b/aisensy_template_explore_1771175092479.png)

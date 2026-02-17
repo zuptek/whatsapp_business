@@ -8,6 +8,8 @@ const http_1 = __importDefault(require("http"));
 const websocket_1 = require("./websocket");
 const auth_1 = __importDefault(require("./routes/auth"));
 const webhooks_1 = __importDefault(require("./routes/webhooks"));
+const messages_1 = __importDefault(require("./routes/messages"));
+const conversations_1 = __importDefault(require("./routes/conversations"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -17,6 +19,8 @@ app.use(express_1.default.json());
 // Routes
 app.use('/api/auth', auth_1.default);
 app.use('/api/webhooks', webhooks_1.default);
+app.use('/api/messages', messages_1.default);
+app.use('/api/conversations', conversations_1.default);
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
 });

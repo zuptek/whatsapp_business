@@ -1,67 +1,55 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.broadcastAll = exports.broadcastToTenant = exports.initWebSocket = void 0;
-const ws_1 = require("ws");
-let wss;
+exports.broadcastToTenant = exports.broadcastNewMessage = exports.broadcastAll = exports.initWebSocket = void 0;
+const socket_io_1 = require("socket.io");
+let io;
 const initWebSocket = (server) => {
-    wss = new ws_1.WebSocketServer({ server });
-    wss.on('connection', (ws, req) => {
-        ws.isAlive = true;
-        console.log('New WebSocket connection');
-        ws.on('pong', () => {
-            ws.isAlive = true;
-        });
-        ws.on('message', (data) => {
-            try {
-                const message = JSON.parse(data);
-                if (message.type === 'authenticate') {
-                    // TODO: Validate token and set tenantId
-                    // const { token } = message;
-                    // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                    // ws.tenantId = decoded.id;
-                    console.log('Client authenticated');
-                }
-            }
-            catch (e) {
-                console.error('WebSocket message error:', e);
-            }
-        });
-        ws.send(JSON.stringify({ type: 'WELCOME', message: 'Connected to Upgreat WebSocket' }));
+    io = new socket_io_1.Server(server, {
+        cors: {
+            origin: '*', // Allow all origins for MVP, restrict in production
+            methods: ['GET', 'POST']
+        }
     });
-    // Heartbeat
-    const interval = setInterval(() => {
-        wss.clients.forEach((ws) => {
-            if (ws.isAlive === false)
-                return ws.terminate();
-            ws.isAlive = false;
-            ws.ping();
+    io.on('connection', (socket) => {
+        console.log('New Socket.io connection:', socket.id);
+        // Authentication (Optional for MVP, but good practice)
+        const token = socket.handshake.auth.token;
+        if (token) {
+            try {
+                // const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+                // socket.data.user = decoded;
+                // console.log('User authenticated:', decoded);
+            }
+            catch (err) {
+                console.error('Auth failed');
+            }
+        }
+        // Join Tenant Room (Simulated for MVP)
+        socket.on('join_tenant', (tenantId) => {
+            socket.join(tenantId);
+            console.log(`Socket ${socket.id} joined tenant ${tenantId}`);
         });
-    }, 30000);
-    wss.on('close', () => {
-        clearInterval(interval);
+        socket.on('disconnect', () => {
+            console.log('Socket disconnected:', socket.id);
+        });
     });
 };
 exports.initWebSocket = initWebSocket;
-const broadcastToTenant = (tenantId, data) => {
-    if (!wss)
-        return;
-    wss.clients.forEach((client) => {
-        // For MVP, if no tenantId logic is strict yet, we might broadcast to all or check if client.tenantId matches
-        if (client.readyState === ws_1.WebSocket.OPEN) {
-            // if (client.tenantId === tenantId) { 
-            client.send(JSON.stringify(data));
-            // }
-        }
-    });
-};
-exports.broadcastToTenant = broadcastToTenant;
 const broadcastAll = (data) => {
-    if (!wss)
+    if (!io)
         return;
-    wss.clients.forEach((client) => {
-        if (client.readyState === ws_1.WebSocket.OPEN) {
-            client.send(JSON.stringify(data));
-        }
-    });
+    io.emit('message', data); // Broadcast to everyone (legacy behavior)
 };
 exports.broadcastAll = broadcastAll;
+const broadcastNewMessage = (message) => {
+    if (!io)
+        return;
+    io.emit('new_message', message);
+};
+exports.broadcastNewMessage = broadcastNewMessage;
+const broadcastToTenant = (tenantId, event, data) => {
+    if (!io)
+        return;
+    io.to(tenantId).emit(event, data);
+};
+exports.broadcastToTenant = broadcastToTenant;

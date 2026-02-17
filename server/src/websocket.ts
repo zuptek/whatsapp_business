@@ -13,7 +13,8 @@ export const initWebSocket = (server: HttpServer) => {
     });
 
     io.on('connection', (socket: Socket) => {
-        console.log('New Socket.io connection:', socket.id);
+        // Reduced logging for cleaner output
+        // console.log('New Socket.io connection:', socket.id);
 
         // Authentication (Optional for MVP, but good practice)
         const token = socket.handshake.auth.token;
@@ -23,18 +24,19 @@ export const initWebSocket = (server: HttpServer) => {
                 // socket.data.user = decoded;
                 // console.log('User authenticated:', decoded);
             } catch (err) {
-                console.error('Auth failed');
+                console.error('Socket auth failed');
             }
         }
 
         // Join Tenant Room (Simulated for MVP)
         socket.on('join_tenant', (tenantId: string) => {
             socket.join(tenantId);
-            console.log(`Socket ${socket.id} joined tenant ${tenantId}`);
+            console.log(`Socket joined tenant: ${tenantId}`);
         });
 
         socket.on('disconnect', () => {
-            console.log('Socket disconnected:', socket.id);
+            // Reduced logging
+            // console.log('Socket disconnected:', socket.id);
         });
     });
 };

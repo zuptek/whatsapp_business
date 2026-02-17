@@ -24,6 +24,9 @@ services:
       DB_USER: postgres
       DB_PASSWORD: mysecretpassword
       DB_NAME: upgreat
+      DATABASE_URL: postgres://postgres:mysecretpassword@db:5432/upgreat
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       PORT: 3000
     volumes:
       - ./server:/app
@@ -39,5 +42,14 @@ services:
     depends_on:
       - backend
 
+  redis:
+    image: redis:alpine
+    container_name: upgreat-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   pgdata_v2:
+  redis_data:

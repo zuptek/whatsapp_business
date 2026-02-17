@@ -1,18 +1,60 @@
 
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { MessageSquare, Zap, BarChart3, Users, ShieldCheck, Database, LayoutGrid } from 'lucide-react';
-import { LoginButton } from './components/LoginButton';
 import { ChatInterface } from './components/ChatInterface';
+import { Layout } from './components/Layout';
+import { TemplatesPage } from './pages/TemplatesPage';
+import { BroadcastsPage } from './pages/BroadcastsPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { LoginPage } from './pages/LoginPage';
+import { MetaCallback } from './pages/MetaCallback';
 import { useState } from 'react';
 
 function App() {
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={
+          token ? <Navigate to="/" /> : <LoginPage onLogin={(t, _u) => {
+            setToken(t);
+            localStorage.setItem('token', t);
+          }} />
+        } />
+
+        {token ? (
+          <Route element={<Layout onLogout={handleLogout} />}>
+            <Route index element={<ChatInterface token={token} />} />
+            <Route path="templates" element={<TemplatesPage token={token} />} />
+            <Route path="broadcasts" element={<BroadcastsPage token={token} />} />
+            <Route path="settings" element={<SettingsPage token={token} />} />
+            <Route path="whatsapp-callback" element={<MetaCallback token={token} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Route>
+        ) : (
+          <Route path="*" element={<LandingPage />} />
+        )}
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+// Extract Landing Page to keep App clean? Or just inline it here for now but wrapped in a component.
+function LandingPage() {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
     restDelta: 0.001
   });
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white selection:bg-cyan-500/30">
@@ -37,15 +79,22 @@ function App() {
             <a href="#features" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Features</a>
             <a href="#solutions" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Solutions</a>
             <a href="#pricing" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors">Pricing</a>
-            <button className="px-5 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-medium">
+            <button
+              onClick={() => navigate('/login')}
+              className="px-5 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-medium"
+            >
               Log In
             </button>
-            <button className="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-sm font-medium shadow-lg shadow-cyan-500/25 transition-all hover:scale-105 active:scale-95">
+            <button
+              onClick={() => navigate('/login')}
+              className="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-sm font-medium shadow-lg shadow-cyan-500/25 transition-all hover:scale-105 active:scale-95"
+            >
               Get Started
             </button>
           </div>
         </div>
       </nav>
+
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
@@ -93,24 +142,16 @@ function App() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              {!token ? (
-                <>
-                  <LoginButton
-                    appId={import.meta.env.VITE_META_APP_ID || '1234567890'}
-                    onSuccess={(t) => {
-                      setToken(t);
-                    }}
-                    onError={(err) => alert(err)}
-                  />
-                  <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-medium flex items-center justify-center gap-2">
-                    View Demo
-                  </button>
-                </>
-              ) : (
-                <div className="w-full max-w-5xl mx-auto mt-8">
-                  <ChatInterface token={token} />
-                </div>
-              )}
+              <button
+                onClick={() => navigate('/login')}
+                className="px-8 py-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-lg font-bold shadow-xl shadow-cyan-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+              >
+                Start Free Trial <Zap className="w-5 h-5 fill-current" />
+              </button>
+
+              <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-medium flex items-center justify-center gap-2">
+                View Demo
+              </button>
             </motion.div>
           </div>
 
