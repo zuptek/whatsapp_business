@@ -15,7 +15,9 @@ export const MetaCallback = ({ token }: { token: string | null }) => {
             return;
         }
 
-        axios.post('http://localhost:3001/api/meta/callback', { code }, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const redirect_uri = `${window.location.origin}/whatsapp-callback`;
+        axios.post(`${apiUrl}/api/meta/callback`, { code, redirect_uri }, {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(() => {

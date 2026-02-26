@@ -39,7 +39,8 @@ export const ChatInterface = ({ token }: ChatInterfaceProps) => {
 
     // Initialize Socket.io
     useEffect(() => {
-        socket.current = io('http://localhost:3001');
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        socket.current = io(apiUrl);
 
         socket.current.on('connect', () => {
             console.log('Connected to Socket.io');

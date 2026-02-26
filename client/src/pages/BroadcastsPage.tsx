@@ -25,7 +25,8 @@ export const BroadcastsPage = ({ token }: { token: string | null }) => {
     useEffect(() => {
         if (!tenantId) return;
         // Fetch Templates
-        axios.get(`http://localhost:3001/api/templates?tenantId=${tenantId}`)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        axios.get(`${apiUrl}/api/templates?tenantId=${tenantId}`)
             .then(res => setTemplates(res.data.data));
 
         // Fetch Campaigns
@@ -33,7 +34,8 @@ export const BroadcastsPage = ({ token }: { token: string | null }) => {
     }, [tenantId]);
 
     const fetchCampaigns = () => {
-        axios.get(`http://localhost:3001/api/campaigns?tenantId=${tenantId}`)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        axios.get(`${apiUrl}/api/campaigns?tenantId=${tenantId}`)
             .then(res => setCampaigns(res.data));
     };
 
@@ -47,7 +49,8 @@ export const BroadcastsPage = ({ token }: { token: string | null }) => {
         const contactList = phones.split(',').map(p => ({ phone: p.trim(), name: 'Valued Customer' })).filter(c => c.phone);
 
         try {
-            await axios.post('http://localhost:3001/api/campaigns', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            await axios.post(`${apiUrl}/api/campaigns`, {
                 tenantId,
                 name: campaignName,
                 templateId: template.id,

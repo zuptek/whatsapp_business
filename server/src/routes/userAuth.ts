@@ -10,7 +10,12 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+let googleClient: OAuth2Client | null = null;
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID_HERE') {
+    googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+} else {
+    console.warn('GOOGLE_CLIENT_ID not configured. Google login will be disabled.');
+}
 
 // 1. Invite User (Create Tenant + First Admin User)
 // Ideally this should be protected or behind a super-admin key.
@@ -103,6 +108,9 @@ router.post('/google', async (req, res) => {
     const { credential } = req.body; // ID Token from frontend
 
     try {
+        if (!googleClient) {
+            return res.status(501).json({ error: 'Google Login not configured on server' });
+        }
         const ticket = await googleClient.verifyIdToken({
             idToken: credential,
             audience: GOOGLE_CLIENT_ID,
@@ -121,15 +129,20 @@ router.post('/google', async (req, res) => {
         });
 
         if (!user) {
-            // Check if we should allow auto-registration or require invite?
-            // For now, let's say "Invite Only" means they must be invited.
-            // But for the FIRST user (Business Owner), they probably register via Google?
-            // The constraint says "Invite Only".
-            // So if user doesn't exist, we reject?
-            // Or maybe we treat "Google Login" as registration if passing business details?
-            // Let's assume for now if user doesn't exist, we reject, UNLESS it's a specific "Signup with Google" flow which includes business name.
-            // Simplified: If user exists, log them in. If not, error "User not found. Please sign up first."
-            return res.status(404).json({ error: 'User not found. Please contact your admin for an invite.' });
+            // Auto-register via Google
+            const [newTenant] = await db.insert(tenants).values({
+                businessName: `${name}'s Workspace`,
+                wabaId: `google_${googleId}`,
+                accessToken: '', // Placeholder
+            }).returning();
+
+            [user] = await db.insert(users).values({
+                tenantId: newTenant.id,
+                email,
+                name: name || 'Google User',
+                googleId,
+                role: 'admin'
+            }).returning();
         }
 
         // Update Google ID if not set

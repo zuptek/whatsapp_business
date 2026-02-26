@@ -14,7 +14,7 @@ const APP_SECRET = process.env.META_APP_SECRET;
 
 // PROTECTED: Connect WhatsApp Account
 router.post('/callback', authenticateUser, async (req: AuthenticatedRequest, res) => {
-    const { code } = req.body;
+    const { code, redirect_uri } = req.body;
     const { tenantId } = req.user!;
 
     if (!code) {
@@ -30,6 +30,7 @@ router.post('/callback', authenticateUser, async (req: AuthenticatedRequest, res
                     client_id: APP_ID,
                     client_secret: APP_SECRET,
                     code: code,
+                    redirect_uri: redirect_uri || `${req.get('origin')}/whatsapp-callback`
                 },
             }
         );

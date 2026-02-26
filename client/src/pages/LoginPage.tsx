@@ -26,7 +26,8 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
             const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
             const payload = isLogin ? { email, password } : { email, password, name, businessName };
 
-            const res = await axios.post(`http://localhost:3001${endpoint}`, payload);
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            const res = await axios.post(`${apiUrl}${endpoint}`, payload);
             onLogin(res.data.token, res.data.user);
         } catch (err: any) {
             setError(err.response?.data?.error || 'Authentication failed');
@@ -38,7 +39,8 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     const handleGoogleSuccess = async (credentialResponse: any) => {
         setLoading(true);
         try {
-            const res = await axios.post('http://localhost:3001/api/auth/google', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            const res = await axios.post(`${apiUrl}/api/auth/google`, {
                 credential: credentialResponse.credential
             });
             onLogin(res.data.token, res.data.user);

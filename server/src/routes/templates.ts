@@ -22,7 +22,8 @@ router.get('/', async (req, res) => {
 
         // Fetch from Meta or Mock
         let metaTemplates: any[] = [];
-        if (tenant.wabaId.startsWith('DEV_')) {
+        if (tenant.wabaId.startsWith('DEV_') || tenant.wabaId.startsWith('google_') || tenant.wabaId.startsWith('temp_')) {
+            // Use dummy templates for auto-registered users until they connect Meta
             metaTemplates = [
                 {
                     name: 'hello_world',

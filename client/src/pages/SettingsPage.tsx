@@ -50,7 +50,8 @@ export function SettingsPage({ token }: SettingsPageProps) {
 
     const loadSettings = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/api/settings', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            const response = await axios.get(`${apiUrl}/api/settings`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTenant(response.data.tenant);
@@ -80,7 +81,8 @@ export function SettingsPage({ token }: SettingsPageProps) {
         if (!selectedPhoneId) return;
         setSaving(true);
         try {
-            await axios.put(`http://localhost:3001/api/settings/phone/${selectedPhoneId}`, config, {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            await axios.put(`${apiUrl}/api/settings/phone/${selectedPhoneId}`, config, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -108,7 +110,7 @@ export function SettingsPage({ token }: SettingsPageProps) {
 
         const redirectUri = `${window.location.origin}/whatsapp-callback`;
         const scope = 'whatsapp_business_management,whatsapp_business_messaging';
-        const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+        const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
         window.location.href = url;
     };
 
